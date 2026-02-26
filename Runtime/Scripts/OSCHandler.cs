@@ -1,18 +1,25 @@
 using extOSC;
+using System.IO;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using UnityEngine;
-using System.Net.NetworkInformation;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
-namespace GAG.OSCHandler
+namespace GAG.EasyOSC
 {
     public class OSCHandler : MonoBehaviour
     {
+        public static OSCHandler Instance;
+        public OSCSettingsModel OSCSettingsModel = new OSCSettingsModel();
+
+        string _path => Path.Combine(Application.persistentDataPath, "osc_settings.json");
+
         #region Fields Transmitter
 
         [Header("OSC Settings")]
         public OSCTransmitter Transmitter;
-
-        string _msg = "/Message";
+        public string SourceOSCAddress = "/Message";
 
         #endregion
 
@@ -21,25 +28,42 @@ namespace GAG.OSCHandler
 
         [Header("OSC Settings")]
         public OSCReceiver Receiver;
+        public string DestinationOSCAddress = "/Message";
 
         #endregion
 
 
         #region Unity Methods
 
+        void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
         void OnEnable()
         {
-            AppEvents.OnOscDashboardOpened += LoadDefaultData;
+            AppEvents.OSCDashboardOpened += LoadOSCSettings;
+            AppEvents.OSCMessageSent += SendMessage;
+        }
 
-            AppEvents.OnRemotIPEntered += SetRemoteIP;
-            AppEvents.OnPortLoaded += SetPort;
-            AppEvents.OnMsgSent += SendMessageFromThisDevice;
+        void OnDisable()
+        {
+            AppEvents.OSCDashboardOpened -= LoadOSCSettings;
+            AppEvents.OSCMessageSent -= SendMessage;
         }
 
         void Start()
         {
-            LoadDefaultData();
-            Receiver.Bind(_msg, ReceivedMessageFromOtherDevice);
+            LoadOSCSettings();
+            Receiver.Bind(SourceOSCAddress, MessageReceived);
         }
 
         #endregion
@@ -47,9 +71,9 @@ namespace GAG.OSCHandler
 
         #region Other Methods
 
-        public void LoadDefaultData()
+        public string LoadSourceIP()
         {
-            AppEvents.RaiseOnLocalIPLoaded(GetWiFiIPAddress());
+            return GetWiFiIPAddress();
         }
 
         string GetWiFiIPAddress()
@@ -95,34 +119,113 @@ namespace GAG.OSCHandler
             return ipAddress;
         }
 
-        void SetRemoteIP(string ip)
+        void SendMessage(string msg)
         {
-            Transmitter.RemoteHost = ip;
-        }
-        
-        void SetPort(string port)
-        {
-            print(port);
-            Receiver.LocalPort = int.Parse(port);
-            Transmitter.RemotePort = int.Parse(port);
-        }
+            //var message = new OSCMessage(DestinationOSCAddress);
 
-        void SendMessageFromThisDevice(string msg)
-        {
-            var message = new OSCMessage(_msg);
+            //switch (msgType)
+            //{
+            //    case int i:
+            //        message.AddValue(OSCValue.Int(int.Parse(msg)));
+            //        break;
+
+            //    case float f:
+            //        message.AddValue(OSCValue.Float(float.Parse(msg)));
+            //        break;
+
+            //    case bool b:
+            //        message.AddValue(OSCValue.Bool(bool.Parse(msg)));
+            //        break;
+
+            //    default:
+            //        message.AddValue(OSCValue.String(msg));
+            //        break;
+            //}
+
+            //Transmitter.Send(message);
+
+            var message = new OSCMessage(DestinationOSCAddress);
+            //message.AddValue(OSCValue.String(msg));
+            //message.AddValue(OSCValue.Int(1));
+            //message.AddValue(OSCValue.Int(int.Parse(msg)));
+            //message.AddValue(OSCValue.Int(int.Parse(msg)));
             message.AddValue(OSCValue.String(msg));
-
             Transmitter.Send(message);
         }
 
-        void ReceivedMessageFromOtherDevice(OSCMessage message)
+        void MessageReceived(OSCMessage message)
         {
-            if (message.ToString(out var value))
+            if (message.Values.Count == 0) return;
+
+            var oscValue = message.Values[0];
+
+            if (oscValue.Type == OSCValueType.Int)
             {
-                AppEvents.RaiseOnMsgRecieved(value);
+                int value = oscValue.IntValue;
+                AppEvents.RaiseOSCMsgReceived(value.ToString());
+                Debug.Log("Received INT: " + value);
+            }
+            else if (oscValue.Type == OSCValueType.String)
+            {
+                string value = oscValue.StringValue;
+                AppEvents.RaiseOSCMsgReceived(value);
+                Debug.Log("Received STRING: " + value);
             }
         }
 
         #endregion
+
+
+        public void SaveOSCSettings()
+        {
+            string json = JsonUtility.ToJson(OSCSettingsModel, true);
+            File.WriteAllText(_path, json);
+
+            UpdateSettings();
+        }
+
+        public void LoadOSCSettings()
+        {
+            AppEvents.RaiseLocalIPLoaded(GetWiFiIPAddress());
+
+            if (File.Exists(_path))
+            {
+                string json = File.ReadAllText(_path);
+                OSCSettingsModel = JsonUtility.FromJson<OSCSettingsModel>(json);
+
+                UpdateSettings();
+            }
+        }
+
+        void UpdateSettings()
+        {
+            Receiver.LocalHost = OSCSettingsModel.SourceIP;
+            Receiver.LocalPort = OSCSettingsModel.SourcePort;
+            //SourceOSCAddress = OSCSettingsModel.SourceOSCAddress;
+            RebindReceiver(OSCSettingsModel.SourceOSCAddress);
+            Transmitter.RemoteHost = OSCSettingsModel.DestinationIP;
+            Transmitter.RemotePort = OSCSettingsModel.DestinationPort;
+            DestinationOSCAddress = OSCSettingsModel.DestinationOSCAddress;
+        }
+
+        void RebindReceiver(string newPath)
+        {
+            // Remove ALL previous bindings (safe approach)
+            Receiver.UnbindAll();
+
+            SourceOSCAddress = newPath;
+
+            // Bind again with the new path
+            Receiver.Bind(SourceOSCAddress, MessageReceived);
+
+            Debug.Log($"OSC Receiver rebound to: {SourceOSCAddress}");
+        }
+
+        void OnApplicationQuit()
+        {
+#if !UNITY_EDITOR
+            Process.GetCurrentProcess().Kill();
+#endif
+        }
     }
 }

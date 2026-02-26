@@ -1,25 +1,27 @@
 ﻿{
-  "name": "com.ireshsampath.unity-assets.osc-handler",
-  "version": "1.0.0",
-  "displayName": "OSC Handler",
-  "description": "This asset provides a comprehensive solution for handling Open Sound Control (OSC) messages in Unity, built on top of extOSC. It supports sending and receiving OSC messages efficiently, making it ideal for real-time applications, interactive installations, and networked multimedia projects.",
+  "name": "com.ireshsampath.unity-assets-easy-osc",
+  "version": "2.0.1",
+  "displayName": "EasyOSC",
+  "description": "EasyOSC provides a comprehensive solution for handling Open Sound Control (OSC) messages in Unity, built on top of extOSC. It supports efficient OSC sending and receiving, ideal for real-time apps, interactive installations, and networked multimedia projects.",
   "unity": "6000.0",
   "unityRelease": "30f1",
-  "documentationUrl": "https://github.com/IreshSampath/unity-assets-osc-handler/blob/main/README.md",
-  "changelogUrl": "https://example.com/osc-handler-changelog.html",
-  "licensesUrl": "https://example.com/osc-handler-licensing.html",
+  "documentationUrl": "https://github.com/IreshSampath/unity-assets-easy-osc/blob/main/README.md",
+  "changelogUrl": "https://example.com/easyosc-changelog.html",
+  "licensesUrl": "https://example.com/easyosc-licensing.html",
   "dependencies": {
     "com.unity.textmeshpro": "5.0.0"
   },
   "samples": [
     {
-      "displayName": "OSC Handler Sample",
+      "displayName": "EasyOSC Sample",
       "description": "An example scene demonstrating OSC message handling in Unity using extOSC.",
       "path": "Samples~/Sample 1"
     }
   ],
   "keywords": [
+    "easyosc",
     "unity osc",
+    "osc",
     "osc handler",
     "osc messages",
     "open sound control",

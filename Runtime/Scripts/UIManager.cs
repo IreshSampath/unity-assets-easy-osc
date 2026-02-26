@@ -1,99 +1,132 @@
-using System;
+﻿using System;
+using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 
-namespace GAG.OSCHandler
+namespace GAG.EasyOSC
 {
     public class UIManager : MonoBehaviour
     {
         [SerializeField] GameObject _oscDashboardPanel;
-        [SerializeField] TMP_Text _localIPTxt;
 
-        [SerializeField] TMP_InputField _remoteIPInput;
-        [SerializeField] TMP_InputField _portInput;
+        [SerializeField] TMP_Text _sourceIPTxt;
+        [SerializeField] TMP_InputField _sourcePortInput;
+        [SerializeField] TMP_InputField _sourceOscAddressInput;
+
+        [SerializeField] TMP_InputField _destinationIPInput;
+        [SerializeField] TMP_InputField _destinationPortInput;
+        [SerializeField] TMP_InputField _destinationOscAddressInput;
         [SerializeField] TMP_InputField _msgInput;
 
         [SerializeField] TMP_Text _consolTxt;
 
+        int _ipTapCount = 0;
+
         void OnEnable()
         {
-            AppEvents.OnOscDashboardOpened += ShowDashboard;
-            AppEvents.OnMsgRecieved += ReceivedMessageFromOtherDevice;
-            AppEvents.OnLocalIPLoaded += ShowLocalIP;
+            //AppEvents.OSCDashboardOpened += ShowDashboard;
+            AppEvents.OSCMsgReceived += OnReceivedMessage;
+            //AppEvents.LocalIPLoaded += ShowSourceIP;
         }
 
-        private void Start()
+        void OnDisable()
         {
-            LoadDefaultData();
+            //AppEvents.OSCDashboardOpened -= ShowDashboard;
+            AppEvents.OSCMsgReceived -= OnReceivedMessage;
+            //AppEvents.LocalIPLoaded -= ShowSourceIP;
         }
 
-        public void ShowInstructions()
+        public void OnClickOpenOSCDashboard()
+        {
+            _ipTapCount++;
+
+            if (_ipTapCount == 3)
+            {
+                LoadToUI();
+                _oscDashboardPanel.SetActive(true);
+
+                _ipTapCount = 0;
+            }
+        }
+
+        public void OnClickShowInstructions()
+        {
+            ShowInstructions();
+        }
+
+        void ShowInstructions()
         {
             string instructions = "" +
                 "# Ensure all devices are connected to the same network.\n\n" +
                 "# When changing the local network, click \"Refresh\" to update the local IP address.\n\n" +
-                "# After changing the remote IP, don't forget to click \"Save\".\n\n" +
+                "# After changing anything, don't forget to click \"Save\".\n\n" +
                 "# If you're not receiving messages on the Windows app, disable the firewall for public networks.";
 
             PrintConsole(instructions);
         }
 
-        void ShowDashboard()
-        {
-            LoadDefaultData();
-            _oscDashboardPanel.SetActive(true);
-        }
-
-        void LoadDefaultData()
-        {
-            _remoteIPInput.text = PlayerPrefs.GetString("RemoteIpAdress", "0.0.0.0");
-            _portInput.text = PlayerPrefs.GetString("Port", "7000");
-            RegisterOtherDeviceIP();
-            RegisterPort();
-        }
-
-        public void PrintConsole(string msg)
+        void PrintConsole(string msg)
         {
             DateTime now = DateTime.Now;
             string currentTime = now.ToString("hh:mm:ss");
 
             string newMessage = $"{currentTime} : {msg}\n\n{_consolTxt.text}"; // Prepend new message
             _consolTxt.text = newMessage;
-
-            //string prevMsg = _consolTxt.text;
-            //_consolTxt.text = prevMsg + "\n" + currentTime + " : " + msg;
         }
 
-        void ShowLocalIP(string ip)
+        public void LoadSourceIP()
         {
-            _localIPTxt.text = ip;
+            string ipAddress = OSCHandler.Instance.LoadSourceIP();
+            _sourceIPTxt.text = ipAddress;
         }
 
-        void ReceivedMessageFromOtherDevice(string msg)
+        void OnReceivedMessage(string msg)
         {
-            PrintConsole(msg);
+            PrintConsole($"OSC Received ({msg})" );
         }
-
-        public void RegisterOtherDeviceIP()
+        public void OnClickSave()
         {
-            PlayerPrefs.SetString("RemoteIpAdress", _remoteIPInput.text);
-
-            AppEvents.RaiseOnRemotIPEntered(_remoteIPInput.text);
-            PrintConsole($"Remote IP Saved ({_remoteIPInput.text})");
+            SaveFromUI();
         }
 
-        public void RegisterPort()
+        public void OnClickSendMessages()
         {
-            PlayerPrefs.SetString("Port", _portInput.text);
-
-            AppEvents.RaiseOnPortLoaded(_portInput.text);
-            PrintConsole($"Port Saved ({_portInput.text})");
+            AppEvents.RaiseOSCMessageSent(_msgInput.text);
+            PrintConsole($"OSC Sent ({ _msgInput.text})");
         }
 
-        public void SetMsg()
+        void LoadToUI()
         {
-            AppEvents.RaiseOnMsgSentd(_msgInput.text);
-            PrintConsole($"Message Sent ({ _msgInput.text})");
+            LoadSourceIP();
+
+            OSCHandler.Instance.LoadOSCSettings();
+
+            OSCSettingsModel Model = OSCHandler.Instance.OSCSettingsModel;
+
+            _sourceIPTxt.text = Model.SourceIP;
+            _sourcePortInput.text = Model.SourcePort.ToString();
+            _sourceOscAddressInput.text = Model.SourceOSCAddress;
+
+            _destinationIPInput.text = Model.DestinationIP;
+            _destinationPortInput.text = Model.DestinationPort.ToString();
+            _destinationOscAddressInput.text = Model.DestinationOSCAddress;
         }
+
+        void SaveFromUI()
+        {
+            OSCSettingsModel Model = OSCHandler.Instance.OSCSettingsModel;
+
+            Model.SourceIP = _sourceIPTxt.text;
+            Model.SourcePort = int.Parse(_sourcePortInput.text);
+            Model.SourceOSCAddress = _sourceOscAddressInput.text;
+
+            Model.DestinationIP = _destinationIPInput.text;
+            Model.DestinationPort = int.Parse(_destinationPortInput.text);
+            Model.DestinationOSCAddress = _destinationOscAddressInput.text;
+
+            OSCHandler.Instance.SaveOSCSettings();
+        }
+
+
     }
 }

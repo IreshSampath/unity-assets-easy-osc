@@ -16,7 +16,7 @@ public class ResponsiveGrid : MonoBehaviour
         if (gridLayout == null || parentRect == null) return;
 
         // Get the parent size
-        float width = parentRect.rect.width;
+        var width = parentRect.rect.width;
         float height = parentRect.rect.height;
 
         // Divide the space equally between two cells

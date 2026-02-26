@@ -1,46 +1,46 @@
 using System;
 
-namespace GAG.OSCHandler 
+namespace GAG.EasyOSC 
 {
     public class AppEvents
     {
-        public static event Action OnOscDashboardOpened;
+        public static event Action OSCDashboardOpened;
 
-        public static event Action<string> OnLocalIPLoaded;
-        public static event Action<string> OnPortLoaded;
+        public static event Action<string> LocalIPLoaded;
+        public static event Action<string> PortLoaded;
+        public static event Action<string> RemoteIPUpdated;
 
-        public static event Action<string> OnRemotIPEntered;
-        public static event Action<string> OnMsgSent;
-        public static event Action<string> OnMsgRecieved;
+        public static event Action<string> OSCMessageSent;
+        public static event Action<string> OSCMsgReceived;
 
-        public static void RaiseOnOscDashboardOpened()
+        public static void RaiseOSCDashboardOpened()
         {
-            OnOscDashboardOpened?.Invoke();
+            OSCDashboardOpened?.Invoke();
         }
 
-        public static void RaiseOnLocalIPLoaded(string ip)
+        public static void RaiseLocalIPLoaded(string ip)
         {
-            OnLocalIPLoaded?.Invoke(ip);
+            LocalIPLoaded?.Invoke(ip);
         }
 
-        public static void RaiseOnRemotIPEntered(string ip)
+        public static void RaiseRemoteIPUpdated(string ip)
         {
-            OnRemotIPEntered?.Invoke(ip);
+            RemoteIPUpdated?.Invoke(ip);
         }
 
-        public static void RaiseOnPortLoaded(string port)
+        public static void RaisePortLoaded(string port)
         {
-            OnPortLoaded?.Invoke(port);
+            PortLoaded?.Invoke(port);
         }
 
-        public static void RaiseOnMsgSentd(string msg)
+        public static void RaiseOSCMessageSent(string msg)
         {
-            OnMsgSent?.Invoke(msg);
+            OSCMessageSent?.Invoke(msg);
         }
 
-        public static void RaiseOnMsgRecieved(string msg)
+        public static void RaiseOSCMsgReceived(string msg)
         {
-            OnMsgRecieved?.Invoke(msg);
+            OSCMsgReceived?.Invoke(msg);
         }
     }
 }
