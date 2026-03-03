@@ -122,7 +122,7 @@ namespace GAG.EasyOSC
         void SendMessage(string address, string msg, int msgType = 0)
         {
             print($"{address} | {msg} | {msgType}");
-            var message = new OSCMessage(DestinationOSCAddress);
+            var message = new OSCMessage(address);
             
             switch (msgType)
             {
