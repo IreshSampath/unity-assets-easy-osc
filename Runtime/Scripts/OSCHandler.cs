@@ -119,37 +119,38 @@ namespace GAG.EasyOSC
             return ipAddress;
         }
 
-        void SendMessage(string msg)
+        void SendMessage(string address, string msg, int msgType = 0)
         {
-            //var message = new OSCMessage(DestinationOSCAddress);
+            print($"{address} | {msg} | {msgType}");
+            var message = new OSCMessage(DestinationOSCAddress);
+            
+            switch (msgType)
+            {
+                case 1:
+                    message.AddValue(OSCValue.Int(int.Parse(msg)));
+                    break;
 
-            //switch (msgType)
-            //{
-            //    case int i:
-            //        message.AddValue(OSCValue.Int(int.Parse(msg)));
-            //        break;
+                case 2:
+                    message.AddValue(OSCValue.Float(float.Parse(msg)));
+                    break;
 
-            //    case float f:
-            //        message.AddValue(OSCValue.Float(float.Parse(msg)));
-            //        break;
+                case 3:
+                    message.AddValue(OSCValue.Bool(bool.Parse(msg)));
+                    break;
 
-            //    case bool b:
-            //        message.AddValue(OSCValue.Bool(bool.Parse(msg)));
-            //        break;
-
-            //    default:
-            //        message.AddValue(OSCValue.String(msg));
-            //        break;
-            //}
+                default:
+                    message.AddValue(OSCValue.String(msg));
+                    break;
+            }
 
             //Transmitter.Send(message);
 
-            var message = new OSCMessage(DestinationOSCAddress);
+            //var message = new OSCMessage(DestinationOSCAddress);
             //message.AddValue(OSCValue.String(msg));
             //message.AddValue(OSCValue.Int(1));
             //message.AddValue(OSCValue.Int(int.Parse(msg)));
             //message.AddValue(OSCValue.Int(int.Parse(msg)));
-            message.AddValue(OSCValue.String(msg));
+            //message.AddValue(OSCValue.String(msg));
             Transmitter.Send(message);
         }
 

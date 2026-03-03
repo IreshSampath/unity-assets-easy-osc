@@ -10,7 +10,7 @@ namespace GAG.EasyOSC
         public static event Action<string> PortLoaded;
         public static event Action<string> RemoteIPUpdated;
 
-        public static event Action<string> OSCMessageSent;
+        public static event Action<string, string, int> OSCMessageSent;
         public static event Action<string> OSCMsgReceived;
 
         public static void RaiseOSCDashboardOpened()
@@ -33,9 +33,9 @@ namespace GAG.EasyOSC
             PortLoaded?.Invoke(port);
         }
 
-        public static void RaiseOSCMessageSent(string msg)
+        public static void RaiseOSCMessageSent(string address, string msg, int msgType = 0)
         {
-            OSCMessageSent?.Invoke(msg);
+            OSCMessageSent?.Invoke(address,msg,msgType);
         }
 
         public static void RaiseOSCMsgReceived(string msg)

@@ -1,6 +1,6 @@
 ﻿{
   "name": "com.ireshsampath.unity-assets-easy-osc",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "displayName": "EasyOSC",
   "description": "EasyOSC provides a comprehensive solution for handling Open Sound Control (OSC) messages in Unity, built on top of extOSC. It supports efficient OSC sending and receiving, ideal for real-time apps, interactive installations, and networked multimedia projects.",
   "unity": "6000.0",

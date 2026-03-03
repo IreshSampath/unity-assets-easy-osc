@@ -19,7 +19,7 @@ namespace GAG.EasyOSC
         [SerializeField] TMP_InputField _msgInput;
 
         [SerializeField] TMP_Text _consolTxt;
-
+        [SerializeField] TMP_Dropdown _messageTypeDropdown;
         int _ipTapCount = 0;
 
         void OnEnable()
@@ -89,9 +89,14 @@ namespace GAG.EasyOSC
             SaveFromUI();
         }
 
+        public void OnDropdownValueChanged(int value)
+        {
+            print(value);
+        }
+        
         public void OnClickSendMessages()
         {
-            AppEvents.RaiseOSCMessageSent(_msgInput.text);
+            AppEvents.RaiseOSCMessageSent(_destinationOscAddressInput.text, _msgInput.text, _messageTypeDropdown.value);
             PrintConsole($"OSC Sent ({ _msgInput.text})");
         }
 
